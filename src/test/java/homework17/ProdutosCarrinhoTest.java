@@ -223,7 +223,7 @@ public class ProdutosCarrinhoTest {
                 .delete("/produtos/{id}")
                 .then()
                 .statusCode(200)
-                .body("message", equalTo("Registro exclu\u00eddo com sucesso"));
+                .body("message", equalTo("Registro excluído com sucesso"));
 
         // 4. Проверяем, что товара больше нет
         given()
@@ -289,7 +289,7 @@ public class ProdutosCarrinhoTest {
                 .delete("/carrinhos/concluir-compra")
                 .then()
                 .statusCode(200)
-                .body("message", equalTo("Registro exclu\u00eddo com sucesso"));
+                .body("message", equalTo("Registro excluído com sucesso"));
 
         // 4. Повторное завершение покупки: корзины уже нет.
         given()
@@ -347,6 +347,6 @@ public class ProdutosCarrinhoTest {
                 .delete("/carrinhos/cancelar-compra")
                 .then()
                 .statusCode(200)
-                .body("message", equalTo("Registro exclu\u00eddo com sucesso. Estoque dos produtos reabastecido"));
+                .body("message", equalTo("Registro excluído com sucesso. Estoque dos produtos reabastecido"));
     }
 }

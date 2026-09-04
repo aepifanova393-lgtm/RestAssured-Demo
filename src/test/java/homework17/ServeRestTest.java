@@ -102,27 +102,84 @@ public class ServeRestTest {
                 .path("_id");
     }
 
+    //    @Order(4)
+//    @Test
+//    public void shouldUpdateUser() {
+//        email = "spy_" + System.currentTimeMillis() + "@qa.com";
+//
+//        given()
+//                .pathParam("userId", userId)
+//                .contentType(ContentType.JSON)
+//                .body("""
+//                {
+//                  "nome": "Обновленный Покупатель",
+//                  "email": "%s",
+//                  "password": "secret123",
+//                  "administrador": "false"
+//                }
+//                """.formatted(email))
+//                .when()
+//                .put("/usuarios/{userId}")
+//                .then()
+//                .statusCode(200)
+//                .body("message", equalTo("Registro alterado com sucesso"));
+//    }
+
+    // рефакторинг теста shouldUpdateUser
     @Order(4)
     @Test
-    public void shouldUpdateUser() {
-        email = "spy_" + System.currentTimeMillis() + "@qa.com";
+    @DisplayName("★ Self-contained update: create → PUT → GET verify")
+    void shouldUpdateUserSelfContained() {
+        // Самодостаточный тест: не зависит от состояния других тестов класса.
+        // Создаёт собственного пользователя, обновляет его и проверяет,
+        // что изменение реально сохранилось (а не только что PUT вернул 200).
+        String userEmail = "update_" + System.currentTimeMillis() + "@qa.com";
 
-        given()
-                .pathParam("userId", userId)
+        // 1. Создаём пользователя через DTO (изоляция теста)
+        String userId = given()
                 .contentType(ContentType.JSON)
-                .body("""
+                .body(new Usuario("Initial Name", userEmail, "secret123", "true"))
+                .when()
+                .post("/usuarios")
+                .then()
+                .statusCode(201)
+                .extract()
+                .path("_id");
+
+        // 2. Обновляем пользователя (PUT). Имя и email браны ASCII-символами,
+        //    чтобы сравнение не зависело от кодировки файла при компиляции.
+        given()
+                .pathParam("id", userId)
+                .contentType(ContentType.JSON)
+                .body(asUpdatePayload(userEmail))
+                .when()
+                .put("/usuarios/{id}")
+                .then()
+                .statusCode(200)
+                .body("message", equalTo("Registro alterado com sucesso"));
+
+        // 3. Проверяем, что изменение реально сохранилось через GET
+        given()
+                .pathParam("id", userId)
+                .when()
+                .get("/usuarios/{id}")
+                .then()
+                .statusCode(200)
+                .body("nome", equalTo("Updated Buyer"))
+                .body("administrador", equalTo("false"));
+    }
+
+    // Утилита: тело PUT-запроса. Вынесено в отдельный метод, чтобы не
+    // загромождать тест.
+    private static String asUpdatePayload(String email) {
+        return """
                 {
-                  "nome": "Обновленный Покупатель",
+                  "nome": "Updated Buyer",
                   "email": "%s",
                   "password": "secret123",
                   "administrador": "false"
                 }
-                """.formatted(email))
-                .when()
-                .put("/usuarios/{userId}")
-                .then()
-                .statusCode(200)
-                .body("message", equalTo("Registro alterado com sucesso"));
+                """.formatted(email);
     }
 
     @Order(5)
